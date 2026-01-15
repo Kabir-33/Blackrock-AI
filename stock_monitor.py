@@ -3,48 +3,103 @@
 Stock News Monitor - Tracks news for specified stocks and alerts on positive sentiment
 """
 
-import time
-import sqlite3
-import requests
-import feedparser
-from datetime import datetime, timedelta
 import json
-import re
-from typing import List, Dict, Tuple
 import logging
+import re
+import sqlite3
+import time
+from datetime import datetime, timedelta
+from typing import Dict, List, Tuple
+
+import feedparser
+import requests
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
 # Stocks to monitor
-STOCKS = ['GTI', 'APLD', 'INTC', 'USAR', 'CRML', 'NVTS', 'OKLO', 'HUT', 'IBIT', 'CGC']
+STOCKS = ["GTI", "APLD", "INTC", "USAR", "CRML", "NVTS", "OKLO", "HUT", "IBIT", "CGC"]
 
 # News check interval (in seconds) - 5 minutes
 CHECK_INTERVAL = 300
 
 # Positive and negative keywords for sentiment analysis
 POSITIVE_KEYWORDS = [
-    'surge', 'soar', 'rally', 'gain', 'rise', 'jump', 'climb', 'boost', 'upgrade',
-    'bullish', 'positive', 'growth', 'profit', 'revenue', 'beat', 'exceed', 'outperform',
-    'strong', 'robust', 'expansion', 'breakthrough', 'partnership', 'deal', 'acquisition',
-    'innovation', 'success', 'award', 'win', 'record', 'high', 'optimistic', 'momentum',
-    'buy', 'overweight', 'increased guidance', 'raised guidance', 'dividend increase'
+    "surge",
+    "soar",
+    "rally",
+    "gain",
+    "rise",
+    "jump",
+    "climb",
+    "boost",
+    "upgrade",
+    "bullish",
+    "positive",
+    "growth",
+    "profit",
+    "revenue",
+    "beat",
+    "exceed",
+    "outperform",
+    "strong",
+    "robust",
+    "expansion",
+    "breakthrough",
+    "partnership",
+    "deal",
+    "acquisition",
+    "innovation",
+    "success",
+    "award",
+    "win",
+    "record",
+    "high",
+    "optimistic",
+    "momentum",
+    "buy",
+    "overweight",
+    "increased guidance",
+    "raised guidance",
+    "dividend increase",
 ]
 
 NEGATIVE_KEYWORDS = [
-    'plunge', 'crash', 'drop', 'fall', 'decline', 'loss', 'bearish', 'negative',
-    'downgrade', 'sell', 'underperform', 'weak', 'concern', 'warning', 'miss',
-    'below', 'disappointed', 'cut', 'reduced guidance', 'lowered guidance', 'lawsuit',
-    'investigation', 'fraud', 'scandal', 'bankrupt', 'debt', 'trouble'
+    "plunge",
+    "crash",
+    "drop",
+    "fall",
+    "decline",
+    "loss",
+    "bearish",
+    "negative",
+    "downgrade",
+    "sell",
+    "underperform",
+    "weak",
+    "concern",
+    "warning",
+    "miss",
+    "below",
+    "disappointed",
+    "cut",
+    "reduced guidance",
+    "lowered guidance",
+    "lawsuit",
+    "investigation",
+    "fraud",
+    "scandal",
+    "bankrupt",
+    "debt",
+    "trouble",
 ]
 
 
 class StockNewsMonitor:
-    def __init__(self, db_path='stock_news.db'):
+    def __init__(self, db_path="stock_news.db"):
         self.db_path = db_path
         self.init_database()
 
@@ -54,7 +109,7 @@ class StockNewsMonitor:
         cursor = conn.cursor()
 
         # Create tables
-        cursor.execute('''
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS news (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 ticker TEXT NOT NULL,
@@ -67,9 +122,9 @@ class StockNewsMonitor:
                 sentiment_label TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        ''')
+        """)
 
-        cursor.execute('''
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS alerts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 ticker TEXT NOT NULL,
@@ -79,16 +134,16 @@ class StockNewsMonitor:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (news_id) REFERENCES news (id)
             )
-        ''')
+        """)
 
-        cursor.execute('''
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS monitor_status (
                 id INTEGER PRIMARY KEY,
                 last_check TIMESTAMP,
                 status TEXT,
                 message TEXT
             )
-        ''')
+        """)
 
         conn.commit()
         conn.close()
@@ -100,25 +155,29 @@ class StockNewsMonitor:
         Returns: (score, label) where score is -1 to 1, label is 'positive', 'negative', or 'neutral'
         """
         if not text:
-            return 0.0, 'neutral'
+            return 0.0, "neutral"
 
         text_lower = text.lower()
 
-        positive_count = sum(1 for keyword in POSITIVE_KEYWORDS if keyword in text_lower)
-        negative_count = sum(1 for keyword in NEGATIVE_KEYWORDS if keyword in text_lower)
+        positive_count = sum(
+            1 for keyword in POSITIVE_KEYWORDS if keyword in text_lower
+        )
+        negative_count = sum(
+            1 for keyword in NEGATIVE_KEYWORDS if keyword in text_lower
+        )
 
         total_keywords = positive_count + negative_count
         if total_keywords == 0:
-            return 0.0, 'neutral'
+            return 0.0, "neutral"
 
         score = (positive_count - negative_count) / total_keywords
 
         if score > 0.3:
-            label = 'positive'
+            label = "positive"
         elif score < -0.3:
-            label = 'negative'
+            label = "negative"
         else:
-            label = 'neutral'
+            label = "neutral"
 
         return score, label
 
@@ -132,12 +191,14 @@ class StockNewsMonitor:
 
             for entry in feed.entries[:10]:  # Get latest 10 articles
                 article = {
-                    'ticker': ticker,
-                    'title': entry.get('title', ''),
-                    'description': entry.get('summary', ''),
-                    'url': entry.get('link', ''),
-                    'source': 'Google News',
-                    'published_date': entry.get('published', datetime.now().isoformat())
+                    "ticker": ticker,
+                    "title": entry.get("title", ""),
+                    "description": entry.get("summary", ""),
+                    "url": entry.get("link", ""),
+                    "source": "Google News",
+                    "published_date": entry.get(
+                        "published", datetime.now().isoformat()
+                    ),
                 }
                 articles.append(article)
 
@@ -155,12 +216,14 @@ class StockNewsMonitor:
 
             for entry in feed.entries[:5]:
                 article = {
-                    'ticker': ticker,
-                    'title': entry.get('title', ''),
-                    'description': entry.get('summary', ''),
-                    'url': entry.get('link', ''),
-                    'source': 'Yahoo Finance',
-                    'published_date': entry.get('published', datetime.now().isoformat())
+                    "ticker": ticker,
+                    "title": entry.get("title", ""),
+                    "description": entry.get("summary", ""),
+                    "url": entry.get("link", ""),
+                    "source": "Yahoo Finance",
+                    "published_date": entry.get(
+                        "published", datetime.now().isoformat()
+                    ),
                 }
                 articles.append(article)
 
@@ -179,27 +242,35 @@ class StockNewsMonitor:
         sentiment_score, sentiment_label = self.calculate_sentiment(full_text)
 
         try:
-            cursor.execute('''
+            cursor.execute(
+                """
                 INSERT INTO news (ticker, title, description, url, source, published_date, sentiment_score, sentiment_label)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                article['ticker'],
-                article['title'],
-                article.get('description', ''),
-                article['url'],
-                article['source'],
-                article['published_date'],
-                sentiment_score,
-                sentiment_label
-            ))
+            """,
+                (
+                    article["ticker"],
+                    article["title"],
+                    article.get("description", ""),
+                    article["url"],
+                    article["source"],
+                    article["published_date"],
+                    sentiment_score,
+                    sentiment_label,
+                ),
+            )
 
             news_id = cursor.lastrowid
             conn.commit()
 
             # Create alert if sentiment is positive
-            if sentiment_label == 'positive' and sentiment_score > 0.3:
-                self.create_alert(cursor, article['ticker'], news_id, 'POSITIVE_NEWS',
-                                f"Positive news detected for {article['ticker']}: {article['title']}")
+            if sentiment_label == "positive" and sentiment_score > 0.3:
+                self.create_alert(
+                    cursor,
+                    article["ticker"],
+                    news_id,
+                    "POSITIVE_NEWS",
+                    f"Positive news detected for {article['ticker']}: {article['title']}",
+                )
                 conn.commit()
 
             conn.close()
@@ -214,12 +285,17 @@ class StockNewsMonitor:
             conn.close()
             return -1
 
-    def create_alert(self, cursor, ticker: str, news_id: int, alert_type: str, message: str):
+    def create_alert(
+        self, cursor, ticker: str, news_id: int, alert_type: str, message: str
+    ):
         """Create an alert"""
-        cursor.execute('''
+        cursor.execute(
+            """
             INSERT INTO alerts (ticker, news_id, alert_type, message)
             VALUES (?, ?, ?, ?)
-        ''', (ticker, news_id, alert_type, message))
+        """,
+            (ticker, news_id, alert_type, message),
+        )
         logger.info(f"🔔 ALERT: {message}")
 
     def update_monitor_status(self, status: str, message: str):
@@ -227,10 +303,13 @@ class StockNewsMonitor:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute('''
+        cursor.execute(
+            """
             INSERT OR REPLACE INTO monitor_status (id, last_check, status, message)
             VALUES (1, ?, ?, ?)
-        ''', (datetime.now().isoformat(), status, message))
+        """,
+            (datetime.now().isoformat(), status, message),
+        )
 
         conn.commit()
         conn.close()
@@ -262,8 +341,10 @@ class StockNewsMonitor:
             # Small delay between requests
             time.sleep(1)
 
-        status_msg = f"Checked {len(STOCKS)} stocks, found {total_new_articles} new articles"
-        self.update_monitor_status('running', status_msg)
+        status_msg = (
+            f"Checked {len(STOCKS)} stocks, found {total_new_articles} new articles"
+        )
+        self.update_monitor_status("running", status_msg)
         logger.info(status_msg)
 
     def run(self):
@@ -280,14 +361,19 @@ class StockNewsMonitor:
 
             except KeyboardInterrupt:
                 logger.info("Monitor stopped by user")
-                self.update_monitor_status('stopped', 'Stopped by user')
+                self.update_monitor_status("stopped", "Stopped by user")
                 break
             except Exception as e:
                 logger.error(f"Error in monitoring loop: {e}")
-                self.update_monitor_status('error', str(e))
+                self.update_monitor_status("error", str(e))
                 time.sleep(60)  # Wait a minute before retrying
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    # Initialize settings tables on startup
+    from settings_manager import init_settings_table
+
+    init_settings_table()
+
     monitor = StockNewsMonitor()
     monitor.run()

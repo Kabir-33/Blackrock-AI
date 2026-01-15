@@ -11,7 +11,7 @@ pkill -f dashboard.py
 
 # Start the enhanced stock monitor in background
 echo "📊 Starting news monitoring service (Enhanced with 10+ sources)..."
-nohup /usr/bin/python3.12 stock_monitor_enhanced.py > monitor.log 2>&1 &
+nohup uv run stock_monitor_enhanced.py > monitor.log 2>&1 &
 MONITOR_PID=$!
 echo "Monitor started with PID: $MONITOR_PID"
 
@@ -20,7 +20,7 @@ sleep 2
 
 # Start the dashboard in background
 echo "🌐 Starting web dashboard..."
-nohup /usr/bin/python3.12 dashboard.py > dashboard.log 2>&1 &
+nohup uv run dashboard.py > dashboard.log 2>&1 &
 DASHBOARD_PID=$!
 echo "Dashboard started with PID: $DASHBOARD_PID"
 

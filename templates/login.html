@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>StockPulse AI - Login</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    Oxygen, Ubuntu, Cantarell, sans-serif;
+                background: #f8f9fa;
+                min-height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+
+            .auth-container {
+                background: white;
+                border-radius: 12px;
+                border: 1px solid #e2e8f0;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+                overflow: hidden;
+                width: 100%;
+                max-width: 900px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                min-height: 600px;
+            }
+
+            @media (max-width: 768px) {
+                .auth-container {
+                    grid-template-columns: 1fr;
+                    max-width: 450px;
+                }
+                .auth-sidebar {
+                    display: none;
+                }
+            }
+
+            .auth-sidebar {
+                background: #0f172a;
+                padding: 60px 40px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                color: white;
+            }
+
+            .auth-sidebar h1 {
+                font-size: 2.5em;
+                margin-bottom: 20px;
+                line-height: 1.2;
+                font-weight: 700;
+            }
+
+            .auth-sidebar p {
+                font-size: 1.1em;
+                opacity: 0.9;
+                line-height: 1.6;
+            }
+
+            .auth-sidebar .features {
+                margin-top: 40px;
+            }
+
+            .feature-item {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+
+            .feature-icon {
+                width: 40px;
+                height: 40px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5em;
+            }
+
+            .auth-form-container {
+                padding: 60px 40px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            .auth-form-container h2 {
+                color: #0f172a;
+                margin-bottom: 10px;
+                font-size: 2em;
+                font-weight: 700;
+            }
+
+            .auth-form-container .subtitle {
+                color: #64748b;
+                margin-bottom: 30px;
+                font-size: 0.95em;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+
+            .form-group label {
+                display: block;
+                color: #0f172a;
+                margin-bottom: 8px;
+                font-weight: 500;
+                font-size: 0.875em;
+            }
+
+            .form-group input {
+                width: 100%;
+                padding: 10px 12px;
+                border: 1px solid #cbd5e1;
+                border-radius: 6px;
+                font-size: 0.875em;
+                transition: all 0.2s;
+            }
+
+            .form-group input:focus {
+                outline: none;
+                border-color: #0f172a;
+                box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.05);
+            }
+
+            .form-group .error {
+                color: #ef4444;
+                font-size: 0.85em;
+                margin-top: 5px;
+                display: none;
+            }
+
+            .form-group.has-error input {
+                border-color: #ef4444;
+            }
+
+            .form-group.has-error .error {
+                display: block;
+            }
+
+            .btn {
+                width: 100%;
+                padding: 12px;
+                background: #0f172a;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-size: 0.95em;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+                margin-top: 10px;
+            }
+
+            .btn:hover {
+                background: #1e293b;
+            }
+
+            .btn:active {
+                background: #334155;
+            }
+
+            .btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            .form-toggle {
+                text-align: center;
+                margin-top: 20px;
+                color: #666;
+            }
+
+            .form-toggle a {
+                color: #0f172a;
+                text-decoration: none;
+                font-weight: 600;
+            }
+
+            .form-toggle a:hover {
+                text-decoration: underline;
+            }
+
+            .alert {
+                padding: 12px 15px;
+                border-radius: 6px;
+                margin-bottom: 20px;
+                display: none;
+                font-size: 0.875em;
+            }
+
+            .alert.show {
+                display: block;
+            }
+
+            .alert-success {
+                background: #d1fae5;
+                color: #065f46;
+                border: 1px solid #10b981;
+            }
+
+            .alert-error {
+                background: #fee2e2;
+                color: #991b1b;
+                border: 1px solid #ef4444;
+            }
+
+            .password-strength {
+                margin-top: 8px;
+                height: 4px;
+                background: #e0e0e0;
+                border-radius: 2px;
+                overflow: hidden;
+                display: none;
+            }
+
+            .password-strength.show {
+                display: block;
+            }
+
+            .password-strength-bar {
+                height: 100%;
+                transition:
+                    width 0.3s,
+                    background-color 0.3s;
+                width: 0%;
+            }
+
+            .strength-weak {
+                background: #ef4444;
+                width: 33%;
+            }
+
+            .strength-medium {
+                background: #f59e0b;
+                width: 66%;
+            }
+
+            .strength-strong {
+                background: #10b981;
+                width: 100%;
+            }
+
+            .password-requirements {
+                font-size: 0.85em;
+                color: #666;
+                margin-top: 5px;
+                display: none;
+            }
+
+            .password-requirements.show {
+                display: block;
+            }
+
+            .password-requirements ul {
+                list-style: none;
+                margin-top: 5px;
+            }
+
+            .password-requirements li {
+                padding: 2px 0;
+            }
+
+            .password-requirements li.met {
+                color: #10b981;
+            }
+
+            .password-requirements li.met::before {
+                content: "✓ ";
+            }
+
+            .password-requirements li::before {
+                content: "○ ";
+            }
+
+            .loading-spinner {
+                display: none;
+                width: 18px;
+                height: 18px;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                border-top-color: white;
+                animation: spin 1s linear infinite;
+                margin: 0 auto;
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="auth-container">
+            <div class="auth-sidebar">
+                <h1>📈 StockPulse AI</h1>
+                <p>
+                    Real-Time Market Intelligence Dashboard with AI-powered
+                    analysis
+                </p>
+
+                <div class="features">
+                    <div class="feature-item">
+                        <div class="feature-icon">🤖</div>
+                        <div>
+                            <strong>AI-Powered Analysis</strong><br />
+                            <small>Intelligent market insights</small>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📊</div>
+                        <div>
+                            <strong>Real-Time Monitoring</strong><br />
+                            <small>24/7 stock tracking</small>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🔔</div>
+                        <div>
+                            <strong>Smart Alerts</strong><br />
+                            <small>Never miss important news</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="auth-form-container">
+                <div class="alert alert-success" id="successAlert"></div>
+                <div class="alert alert-error" id="errorAlert"></div>
+
+                <!-- Login Form -->
+                <form id="loginForm" style="display: block">
+                    <h2>Welcome Back</h2>
+                    <p class="subtitle">Sign in to access your dashboard</p>
+
+                    <div class="form-group">
+                        <label for="loginUsername">Username or Email</label>
+                        <input
+                            type="text"
+                            id="loginUsername"
+                            name="username"
+                            required
+                        />
+                        <span class="error"
+                            >Please enter your username or email</span
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input
+                            type="password"
+                            id="loginPassword"
+                            name="password"
+                            required
+                        />
+                        <span class="error">Please enter your password</span>
+                    </div>
+
+                    <button type="submit" class="btn" id="loginBtn">
+                        <span id="loginBtnText">Sign In</span>
+                        <div class="loading-spinner" id="loginSpinner"></div>
+                    </button>
+
+                    <div class="form-toggle">
+                        Don't have an account?
+                        <a href="#" id="showSignup">Sign up</a>
+                    </div>
+                </form>
+
+                <!-- Signup Form -->
+                <form id="signupForm" style="display: none">
+                    <h2>Create Account</h2>
+                    <p class="subtitle">Get started with StockPulse AI</p>
+
+                    <div class="form-group">
+                        <label for="signupUsername">Username</label>
+                        <input
+                            type="text"
+                            id="signupUsername"
+                            name="username"
+                            required
+                            minlength="3"
+                        />
+                        <span class="error"
+                            >Username must be at least 3 characters</span
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signupEmail">Email</label>
+                        <input
+                            type="email"
+                            id="signupEmail"
+                            name="email"
+                            required
+                        />
+                        <span class="error"
+                            >Please enter a valid email address</span
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signupPassword">Password</label>
+                        <input
+                            type="password"
+                            id="signupPassword"
+                            name="password"
+                            required
+                            minlength="8"
+                        />
+                        <span class="error"
+                            >Password must be at least 8 characters</span
+                        >
+                        <div class="password-strength">
+                            <div class="password-strength-bar"></div>
+                        </div>
+                        <div class="password-requirements">
+                            <ul>
+                                <li id="req-length">At least 8 characters</li>
+                                <li id="req-uppercase">One uppercase letter</li>
+                                <li id="req-lowercase">One lowercase letter</li>
+                                <li id="req-number">One number</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signupPasswordConfirm"
+                            >Confirm Password</label
+                        >
+                        <input
+                            type="password"
+                            id="signupPasswordConfirm"
+                            name="password_confirm"
+                            required
+                        />
+                        <span class="error">Passwords do not match</span>
+                    </div>
+
+                    <button type="submit" class="btn" id="signupBtn">
+                        <span id="signupBtnText">Create Account</span>
+                        <div class="loading-spinner" id="signupSpinner"></div>
+                    </button>
+
+                    <div class="form-toggle">
+                        Already have an account?
+                        <a href="#" id="showLogin">Sign in</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            // Form toggle functionality
+            const loginForm = document.getElementById("loginForm");
+            const signupForm = document.getElementById("signupForm");
+            const showSignupLink = document.getElementById("showSignup");
+            const showLoginLink = document.getElementById("showLogin");
+            const successAlert = document.getElementById("successAlert");
+            const errorAlert = document.getElementById("errorAlert");
+
+            showSignupLink.addEventListener("click", (e) => {
+                e.preventDefault();
+                loginForm.style.display = "none";
+                signupForm.style.display = "block";
+                clearAlerts();
+            });
+
+            showLoginLink.addEventListener("click", (e) => {
+                e.preventDefault();
+                signupForm.style.display = "none";
+                loginForm.style.display = "block";
+                clearAlerts();
+            });
+
+            // Password strength checker
+            const signupPassword = document.getElementById("signupPassword");
+            const passwordStrength =
+                signupPassword.parentElement.querySelector(
+                    ".password-strength",
+                );
+            const passwordStrengthBar = passwordStrength.querySelector(
+                ".password-strength-bar",
+            );
+            const passwordRequirements =
+                signupPassword.parentElement.querySelector(
+                    ".password-requirements",
+                );
+
+            signupPassword.addEventListener("focus", () => {
+                passwordStrength.classList.add("show");
+                passwordRequirements.classList.add("show");
+            });
+
+            signupPassword.addEventListener("input", () => {
+                const password = signupPassword.value;
+                const requirements = {
+                    length: password.length >= 8,
+                    uppercase: /[A-Z]/.test(password),
+                    lowercase: /[a-z]/.test(password),
+                    number: /[0-9]/.test(password),
+                };
+
+                // Update requirement indicators
+                document
+                    .getElementById("req-length")
+                    .classList.toggle("met", requirements.length);
+                document
+                    .getElementById("req-uppercase")
+                    .classList.toggle("met", requirements.uppercase);
+                document
+                    .getElementById("req-lowercase")
+                    .classList.toggle("met", requirements.lowercase);
+                document
+                    .getElementById("req-number")
+                    .classList.toggle("met", requirements.number);
+
+                // Calculate strength
+                const metCount =
+                    Object.values(requirements).filter(Boolean).length;
+                passwordStrengthBar.className = "password-strength-bar";
+
+                if (metCount <= 2) {
+                    passwordStrengthBar.classList.add("strength-weak");
+                } else if (metCount === 3) {
+                    passwordStrengthBar.classList.add("strength-medium");
+                } else {
+                    passwordStrengthBar.classList.add("strength-strong");
+                }
+            });
+
+            // Alert functions
+            function showSuccess(message) {
+                successAlert.textContent = message;
+                successAlert.classList.add("show");
+                errorAlert.classList.remove("show");
+            }
+
+            function showError(message) {
+                errorAlert.textContent = message;
+                errorAlert.classList.add("show");
+                successAlert.classList.remove("show");
+            }
+
+            function clearAlerts() {
+                successAlert.classList.remove("show");
+                errorAlert.classList.remove("show");
+            }
+
+            // Login form submission
+            loginForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                clearAlerts();
+
+                const username = document.getElementById("loginUsername").value;
+                const password = document.getElementById("loginPassword").value;
+
+                if (!username || !password) {
+                    showError("Please fill in all fields");
+                    return;
+                }
+
+                // Show loading state
+                const btn = document.getElementById("loginBtn");
+                const btnText = document.getElementById("loginBtnText");
+                const spinner = document.getElementById("loginSpinner");
+
+                btn.disabled = true;
+                btnText.style.display = "none";
+                spinner.style.display = "block";
+
+                try {
+                    const response = await fetch("/api/auth/login", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ username, password }),
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        showSuccess("Login successful! Redirecting...");
+                        setTimeout(() => {
+                            window.location.href = "/";
+                        }, 1000);
+                    } else {
+                        showError(data.error || "Invalid username or password");
+                        btn.disabled = false;
+                        btnText.style.display = "inline";
+                        spinner.style.display = "none";
+                    }
+                } catch (error) {
+                    showError("An error occurred. Please try again.");
+                    btn.disabled = false;
+                    btnText.style.display = "inline";
+                    spinner.style.display = "none";
+                }
+            });
+
+            // Signup form submission
+            signupForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                clearAlerts();
+
+                const username =
+                    document.getElementById("signupUsername").value;
+                const email = document.getElementById("signupEmail").value;
+                const password =
+                    document.getElementById("signupPassword").value;
+                const passwordConfirm = document.getElementById(
+                    "signupPasswordConfirm",
+                ).value;
+
+                // Validation
+                if (username.length < 3) {
+                    showError("Username must be at least 3 characters");
+                    return;
+                }
+
+                if (!email.includes("@")) {
+                    showError("Please enter a valid email address");
+                    return;
+                }
+
+                if (password.length < 8) {
+                    showError("Password must be at least 8 characters");
+                    return;
+                }
+
+                if (password !== passwordConfirm) {
+                    showError("Passwords do not match");
+                    return;
+                }
+
+                // Show loading state
+                const btn = document.getElementById("signupBtn");
+                const btnText = document.getElementById("signupBtnText");
+                const spinner = document.getElementById("signupSpinner");
+
+                btn.disabled = true;
+                btnText.style.display = "none";
+                spinner.style.display = "block";
+
+                try {
+                    const response = await fetch("/api/auth/signup", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ username, email, password }),
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        showSuccess(
+                            "Account created successfully! Redirecting...",
+                        );
+                        setTimeout(() => {
+                            window.location.href = "/";
+                        }, 1000);
+                    } else {
+                        showError(data.error || "Failed to create account");
+                        btn.disabled = false;
+                        btnText.style.display = "inline";
+                        spinner.style.display = "none";
+                    }
+                } catch (error) {
+                    showError("An error occurred. Please try again.");
+                    btn.disabled = false;
+                    btnText.style.display = "inline";
+                    spinner.style.display = "none";
+                }
+            });
+        </script>
+    </body>
+</html>
