@@ -455,6 +455,38 @@ def test_ai_provider_endpoint():
 
 
 # Chat API Endpoints
+@app.route("/api/chat/classify-headline", methods=["POST"])
+@login_required
+def classify_headline_endpoint():
+    """Classify a news headline as positive, negative, or neutral for stock sentiment"""
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    data = request.json
+    headline = data.get("headline")
+    ticker = data.get("ticker")  # Optional
+
+    if not headline:
+        return jsonify({"success": False, "error": "No headline provided"}), 400
+
+    try:
+        from ai_analytics import StockAnalytics
+
+        analytics = StockAnalytics()
+        result = analytics.classify_news_headline(headline, ticker)
+
+        logger.info(
+            f"Headline classified: {result.get('classification')} - {headline[:50]}..."
+        )
+
+        return jsonify(result)
+
+    except Exception as e:
+        logger.error(f"Error classifying headline: {e}")
+        return jsonify({"success": False, "error": f"Server Error: {str(e)}"}), 500
+
+
 @app.route("/api/chat/ask", methods=["POST"])
 def ask_chat_endpoint():
     """Chat with AI about a specific stock"""

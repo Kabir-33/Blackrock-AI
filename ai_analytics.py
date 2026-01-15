@@ -4,53 +4,56 @@ AI-Powered Stock Analytics
 Analyzes technical indicators, news sentiment, and social media to provide stock ratings
 """
 
-import sqlite3
-import requests
-import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Tuple, Optional
 import json
+import logging
+import sqlite3
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Tuple
+
+import requests
 
 logger = logging.getLogger(__name__)
 
-DB_PATH = 'stock_news.db'
+DB_PATH = "stock_news.db"
 
 
 class StockAnalytics:
     def __init__(self, db_path=DB_PATH):
         self.db_path = db_path
         self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        })
+        self.session.headers.update(
+            {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+        )
 
-    def get_stock_price_data(self, ticker: str, period='1mo') -> Dict:
+    def get_stock_price_data(self, ticker: str, period="1mo") -> Dict:
         """Fetch stock price data from Yahoo Finance"""
         try:
             url = f"https://query2.finance.yahoo.com/v8/finance/chart/{ticker}"
             params = {
-                'range': period,
-                'interval': '1d',
-                'indicators': 'quote',
-                'includeTimestamps': 'true'
+                "range": period,
+                "interval": "1d",
+                "indicators": "quote",
+                "includeTimestamps": "true",
             }
 
             response = self.session.get(url, params=params, timeout=10)
 
             if response.status_code == 200:
                 data = response.json()
-                result = data.get('chart', {}).get('result', [{}])[0]
+                result = data.get("chart", {}).get("result", [{}])[0]
 
-                quote = result.get('indicators', {}).get('quote', [{}])[0]
-                timestamps = result.get('timestamp', [])
+                quote = result.get("indicators", {}).get("quote", [{}])[0]
+                timestamps = result.get("timestamp", [])
 
                 prices = {
-                    'open': quote.get('open', []),
-                    'high': quote.get('high', []),
-                    'low': quote.get('low', []),
-                    'close': quote.get('close', []),
-                    'volume': quote.get('volume', []),
-                    'timestamps': timestamps
+                    "open": quote.get("open", []),
+                    "high": quote.get("high", []),
+                    "low": quote.get("low", []),
+                    "close": quote.get("close", []),
+                    "volume": quote.get("volume", []),
+                    "timestamps": timestamps,
                 }
 
                 return prices
@@ -66,7 +69,7 @@ class StockAnalytics:
             return 50.0  # Neutral if not enough data
 
         # Calculate price changes
-        deltas = [prices[i] - prices[i-1] for i in range(1, len(prices))]
+        deltas = [prices[i] - prices[i - 1] for i in range(1, len(prices))]
 
         # Separate gains and losses
         gains = [d if d > 0 else 0 for d in deltas]
@@ -87,7 +90,7 @@ class StockAnalytics:
     def calculate_macd(self, prices: List[float]) -> Tuple[float, float, str]:
         """Calculate MACD (Moving Average Convergence Divergence)"""
         if len(prices) < 26:
-            return 0.0, 0.0, 'neutral'
+            return 0.0, 0.0, "neutral"
 
         # Calculate EMAs
         ema_12 = self.calculate_ema(prices, 12)
@@ -97,11 +100,11 @@ class StockAnalytics:
         signal = self.calculate_ema([macd], 9)
 
         if macd > signal:
-            trend = 'bullish'
+            trend = "bullish"
         elif macd < signal:
-            trend = 'bearish'
+            trend = "bearish"
         else:
-            trend = 'neutral'
+            trend = "neutral"
 
         return macd, signal, trend
 
@@ -129,9 +132,9 @@ class StockAnalytics:
         for period in [20, 50, 200]:
             if len(prices) >= period:
                 ma = sum(prices[-period:]) / period
-                mas[f'ma_{period}'] = {
-                    'value': ma,
-                    'signal': 'bullish' if current_price > ma else 'bearish'
+                mas[f"ma_{period}"] = {
+                    "value": ma,
+                    "signal": "bullish" if current_price > ma else "bearish",
                 }
 
         return mas
@@ -145,79 +148,90 @@ class StockAnalytics:
         since_date = (datetime.now() - timedelta(days=days)).isoformat()
 
         # Get all articles for this ticker in the last N days
-        cursor.execute('''
+        cursor.execute(
+            """
             SELECT sentiment_score, sentiment_label, source, engagement_score, created_at
             FROM news
             WHERE ticker = ? AND created_at > ?
             ORDER BY created_at DESC
-        ''', (ticker, since_date))
+        """,
+            (ticker, since_date),
+        )
 
         articles = cursor.fetchall()
         conn.close()
 
         if not articles:
             return {
-                'avg_sentiment': 0.0,
-                'total_articles': 0,
-                'positive_count': 0,
-                'negative_count': 0,
-                'neutral_count': 0,
-                'sentiment_trend': 'neutral',
-                'sources': {},
-                'weighted_sentiment': 0.0
+                "avg_sentiment": 0.0,
+                "total_articles": 0,
+                "positive_count": 0,
+                "negative_count": 0,
+                "neutral_count": 0,
+                "sentiment_trend": "neutral",
+                "sources": {},
+                "weighted_sentiment": 0.0,
             }
 
         # Calculate sentiment metrics
-        sentiments = [a['sentiment_score'] for a in articles]
-        labels = [a['sentiment_label'] for a in articles]
+        sentiments = [a["sentiment_score"] for a in articles]
+        labels = [a["sentiment_label"] for a in articles]
 
         # Weight by engagement score
         weighted_sentiments = []
         for article in articles:
-            weight = 1 + (article['engagement_score'] / 100)  # Higher engagement = more weight
-            weighted_sentiments.append(article['sentiment_score'] * weight)
+            weight = 1 + (
+                article["engagement_score"] / 100
+            )  # Higher engagement = more weight
+            weighted_sentiments.append(article["sentiment_score"] * weight)
 
         avg_sentiment = sum(sentiments) / len(sentiments)
-        weighted_sentiment = sum(weighted_sentiments) / sum([1 + (a['engagement_score'] / 100) for a in articles])
+        weighted_sentiment = sum(weighted_sentiments) / sum(
+            [1 + (a["engagement_score"] / 100) for a in articles]
+        )
 
-        positive_count = labels.count('positive')
-        negative_count = labels.count('negative')
-        neutral_count = labels.count('neutral')
+        positive_count = labels.count("positive")
+        negative_count = labels.count("negative")
+        neutral_count = labels.count("neutral")
 
         # Determine sentiment trend (last 3 days vs previous days)
         recent_cutoff = (datetime.now() - timedelta(days=3)).isoformat()
-        recent = [a['sentiment_score'] for a in articles if a['created_at'] > recent_cutoff]
-        older = [a['sentiment_score'] for a in articles if a['created_at'] <= recent_cutoff]
+        recent = [
+            a["sentiment_score"] for a in articles if a["created_at"] > recent_cutoff
+        ]
+        older = [
+            a["sentiment_score"] for a in articles if a["created_at"] <= recent_cutoff
+        ]
 
         if recent and older:
             recent_avg = sum(recent) / len(recent)
             older_avg = sum(older) / len(older)
             if recent_avg > older_avg + 0.1:
-                trend = 'improving'
+                trend = "improving"
             elif recent_avg < older_avg - 0.1:
-                trend = 'declining'
+                trend = "declining"
             else:
-                trend = 'stable'
+                trend = "stable"
         else:
-            trend = 'stable'
+            trend = "stable"
 
         # Count by source
         sources = {}
         for article in articles:
-            source = article['source']
+            source = article["source"]
             if source not in sources:
-                sources[source] = {'count': 0, 'avg_sentiment': 0}
-            sources[source]['count'] += 1
+                sources[source] = {"count": 0, "avg_sentiment": 0}
+            sources[source]["count"] += 1
 
         return {
-            'avg_sentiment': avg_sentiment,
-            'weighted_sentiment': weighted_sentiment,
-            'total_articles': len(articles),
-            'positive_count': positive_count,
-            'negative_count': negative_count,
-            'neutral_count': neutral_count,
-            'sentiment_trend': trend,
-            'sources': sources
+            "avg_sentiment": avg_sentiment,
+            "weighted_sentiment": weighted_sentiment,
+            "total_articles": len(articles),
+            "positive_count": positive_count,
+            "negative_count": negative_count,
+            "neutral_count": neutral_count,
+            "sentiment_trend": trend,
+            "sources": sources,
         }
 
     def calculate_ai_rating(self, ticker: str) -> Dict:
@@ -230,31 +244,31 @@ class StockAnalytics:
         # Get price data
         price_data = self.get_stock_price_data(ticker)
 
-        if not price_data or not price_data.get('close'):
-            is_indian = '.NS' in ticker.upper() or '.BO' in ticker.upper()
+        if not price_data or not price_data.get("close"):
+            is_indian = ".NS" in ticker.upper() or ".BO" in ticker.upper()
             return {
-                'ticker': ticker,
-                'rating': 'INSUFFICIENT_DATA',
-                'score': 0,
-                'confidence': 0,
-                'currency': 'INR' if is_indian else 'USD',
-                'currency_symbol': '₹' if is_indian else '$',
-                'message': 'Not enough data to analyze'
+                "ticker": ticker,
+                "rating": "INSUFFICIENT_DATA",
+                "score": 0,
+                "confidence": 0,
+                "currency": "INR" if is_indian else "USD",
+                "currency_symbol": "₹" if is_indian else "$",
+                "message": "Not enough data to analyze",
             }
 
         # Filter out None values
-        closes = [p for p in price_data['close'] if p is not None]
+        closes = [p for p in price_data["close"] if p is not None]
 
         if len(closes) < 14:
-            is_indian = '.NS' in ticker.upper() or '.BO' in ticker.upper()
+            is_indian = ".NS" in ticker.upper() or ".BO" in ticker.upper()
             return {
-                'ticker': ticker,
-                'rating': 'INSUFFICIENT_DATA',
-                'score': 0,
-                'confidence': 0,
-                'currency': 'INR' if is_indian else 'USD',
-                'currency_symbol': '₹' if is_indian else '$',
-                'message': 'Not enough price data to analyze'
+                "ticker": ticker,
+                "rating": "INSUFFICIENT_DATA",
+                "score": 0,
+                "confidence": 0,
+                "currency": "INR" if is_indian else "USD",
+                "currency_symbol": "₹" if is_indian else "$",
+                "message": "Not enough price data to analyze",
             }
 
         # Technical Analysis
@@ -283,44 +297,56 @@ class StockAnalytics:
             technical_signals.append(f"RSI: {rsi:.1f}")
 
         # Determine currency based on ticker suffix
-        is_indian = '.NS' in ticker.upper() or '.BO' in ticker.upper()
-        currency_symbol = '₹' if is_indian else '$'
+        is_indian = ".NS" in ticker.upper() or ".BO" in ticker.upper()
+        currency_symbol = "₹" if is_indian else "$"
 
         # Moving Average Analysis
         ma_bullish = 0
         for ma_name, ma_data in moving_averages.items():
-            if ma_data['signal'] == 'bullish':
+            if ma_data["signal"] == "bullish":
                 ma_bullish += 1
                 technical_score += 10
-                technical_signals.append(f"Price above {ma_name.upper()}: {currency_symbol}{ma_data['value']:.2f} (Bullish)")
+                technical_signals.append(
+                    f"Price above {ma_name.upper()}: {currency_symbol}{ma_data['value']:.2f} (Bullish)"
+                )
             else:
-                technical_signals.append(f"Price below {ma_name.upper()}: {currency_symbol}{ma_data['value']:.2f} (Bearish)")
+                technical_signals.append(
+                    f"Price below {ma_name.upper()}: {currency_symbol}{ma_data['value']:.2f} (Bearish)"
+                )
 
         # Sentiment Score (0-100)
         sentiment_score = 50  # Neutral baseline
         sentiment_signals = []
 
-        if sentiment['total_articles'] > 0:
+        if sentiment["total_articles"] > 0:
             # Weighted sentiment is more important
-            sentiment_multiplier = (sentiment['weighted_sentiment'] + 1) / 2 * 100  # Convert -1 to 1 range to 0 to 100
+            sentiment_multiplier = (
+                (sentiment["weighted_sentiment"] + 1) / 2 * 100
+            )  # Convert -1 to 1 range to 0 to 100
             sentiment_score = sentiment_multiplier
 
             # Adjust based on article count (more articles = higher confidence)
-            if sentiment['total_articles'] >= 10:
-                confidence_boost = min(10, sentiment['total_articles'] / 5)
+            if sentiment["total_articles"] >= 10:
+                confidence_boost = min(10, sentiment["total_articles"] / 5)
                 sentiment_score += confidence_boost
 
             # Sentiment trend adjustment
-            if sentiment['sentiment_trend'] == 'improving':
+            if sentiment["sentiment_trend"] == "improving":
                 sentiment_score += 10
                 sentiment_signals.append("📈 Sentiment improving in recent days")
-            elif sentiment['sentiment_trend'] == 'declining':
+            elif sentiment["sentiment_trend"] == "declining":
                 sentiment_score -= 10
                 sentiment_signals.append("📉 Sentiment declining in recent days")
 
-            sentiment_signals.append(f"📰 {sentiment['total_articles']} articles analyzed")
-            sentiment_signals.append(f"✅ {sentiment['positive_count']} positive, ❌ {sentiment['negative_count']} negative, ➡️ {sentiment['neutral_count']} neutral")
-            sentiment_signals.append(f"Weighted sentiment: {sentiment['weighted_sentiment']:.2f}")
+            sentiment_signals.append(
+                f"📰 {sentiment['total_articles']} articles analyzed"
+            )
+            sentiment_signals.append(
+                f"✅ {sentiment['positive_count']} positive, ❌ {sentiment['negative_count']} negative, ➡️ {sentiment['neutral_count']} neutral"
+            )
+            sentiment_signals.append(
+                f"Weighted sentiment: {sentiment['weighted_sentiment']:.2f}"
+            )
         else:
             sentiment_signals.append("No recent news data")
 
@@ -351,69 +377,85 @@ class StockAnalytics:
             color = "#dc2626"
 
         # Calculate confidence (based on data availability)
-        confidence = min(100, (
-            (min(sentiment['total_articles'], 20) * 2.5) +  # Up to 50 points for articles
-            (len(closes) / 30 * 30) +  # Up to 30 points for price data
-            (len(moving_averages) * 6.67)  # Up to 20 points for MAs
-        ))
+        confidence = min(
+            100,
+            (
+                (
+                    min(sentiment["total_articles"], 20) * 2.5
+                )  # Up to 50 points for articles
+                + (len(closes) / 30 * 30)  # Up to 30 points for price data
+                + (len(moving_averages) * 6.67)  # Up to 20 points for MAs
+            ),
+        )
 
         # Currency already determined earlier
-        currency = 'INR' if is_indian else 'USD'
+        currency = "INR" if is_indian else "USD"
 
         # Generate AI summary
-        summary_text, ai_powered = self._generate_summary(rating, final_score, technical_signals, sentiment_signals)
+        summary_text, ai_powered = self._generate_summary(
+            rating, final_score, technical_signals, sentiment_signals
+        )
 
         return {
-            'ticker': ticker,
-            'rating': rating,
-            'emoji': emoji,
-            'color': color,
-            'score': round(final_score, 1),
-            'confidence': round(confidence, 1),
-            'technical_score': round(technical_score, 1),
-            'sentiment_score': round(sentiment_score, 1),
-            'current_price': current_price,
-            'currency': currency,
-            'currency_symbol': currency_symbol,
-            'rsi': round(rsi, 2),
-            'moving_averages': moving_averages,
-            'sentiment': sentiment,
-            'technical_signals': technical_signals,
-            'sentiment_signals': sentiment_signals,
-            'analysis_summary': summary_text,
-            'ai_powered': ai_powered,
-            'timestamp': datetime.now().isoformat()
+            "ticker": ticker,
+            "rating": rating,
+            "emoji": emoji,
+            "color": color,
+            "score": round(final_score, 1),
+            "confidence": round(confidence, 1),
+            "technical_score": round(technical_score, 1),
+            "sentiment_score": round(sentiment_score, 1),
+            "current_price": current_price,
+            "currency": currency,
+            "currency_symbol": currency_symbol,
+            "rsi": round(rsi, 2),
+            "moving_averages": moving_averages,
+            "sentiment": sentiment,
+            "technical_signals": technical_signals,
+            "sentiment_signals": sentiment_signals,
+            "analysis_summary": summary_text,
+            "ai_powered": ai_powered,
+            "timestamp": datetime.now().isoformat(),
         }
 
-    def _generate_summary(self, rating: str, score: float, technical_signals: List[str],
-                         sentiment_signals: List[str]) -> tuple:
+    def _generate_summary(
+        self,
+        rating: str,
+        score: float,
+        technical_signals: List[str],
+        sentiment_signals: List[str],
+    ) -> tuple:
         """Generate AI summary of the analysis. Returns (summary_text, is_ai_powered)"""
         # Try to use real AI if configured
         try:
-            from settings_manager import get_active_ai_provider
             from ai_providers import AIProviderFactory
+            from settings_manager import get_active_ai_provider
 
             provider_config = get_active_ai_provider()
 
             if provider_config:
-                logger.info(f"Using AI provider: {provider_config['provider_name']} - {provider_config['model']}")
+                logger.info(
+                    f"Using AI provider: {provider_config['provider_name']} - {provider_config['model']}"
+                )
 
                 # Create AI provider
                 provider = AIProviderFactory.create_provider(
-                    provider_config['provider_name'],
-                    provider_config['api_key'],
-                    provider_config['model']
+                    provider_config["provider_name"],
+                    provider_config["api_key"],
+                    provider_config["model"],
                 )
 
                 if provider:
                     # Create detailed prompt for AI
-                    prompt = self._create_ai_prompt(rating, score, technical_signals, sentiment_signals)
+                    prompt = self._create_ai_prompt(
+                        rating, score, technical_signals, sentiment_signals
+                    )
 
                     # Get AI analysis (with timeout protection)
                     ai_summary = provider.generate_analysis(prompt, max_tokens=300)
 
                     # Return AI summary if successful
-                    if ai_summary and not ai_summary.startswith('Error:'):
+                    if ai_summary and not ai_summary.startswith("Error:"):
                         logger.info("AI analysis generated successfully")
                         return (ai_summary, True)
         except Exception as e:
@@ -421,27 +463,32 @@ class StockAnalytics:
 
         # Fallback to basic summary if AI is not available
         summaries = {
-            'STRONG_BUY': f"Strong bullish signals detected (Score: {score:.1f}/100). Technical indicators and news sentiment are highly positive. Consider buying.",
-            'BUY': f"Bullish indicators present (Score: {score:.1f}/100). Both technical analysis and sentiment lean positive. Good buying opportunity.",
-            'HOLD': f"Mixed signals (Score: {score:.1f}/100). Consider holding current position. Monitor for clearer directional signals.",
-            'SELL': f"Bearish indicators detected (Score: {score:.1f}/100). Technical and/or sentiment analysis suggest caution. Consider reducing position.",
-            'STRONG_SELL': f"Strong bearish signals (Score: {score:.1f}/100). Multiple negative indicators present. Consider exiting position."
+            "STRONG_BUY": f"Strong bullish signals detected (Score: {score:.1f}/100). Technical indicators and news sentiment are highly positive. Consider buying.",
+            "BUY": f"Bullish indicators present (Score: {score:.1f}/100). Both technical analysis and sentiment lean positive. Good buying opportunity.",
+            "HOLD": f"Mixed signals (Score: {score:.1f}/100). Consider holding current position. Monitor for clearer directional signals.",
+            "SELL": f"Bearish indicators detected (Score: {score:.1f}/100). Technical and/or sentiment analysis suggest caution. Consider reducing position.",
+            "STRONG_SELL": f"Strong bearish signals (Score: {score:.1f}/100). Multiple negative indicators present. Consider exiting position.",
         }
 
         return (summaries.get(rating, f"Score: {score:.1f}/100"), False)
 
-    def _create_ai_prompt(self, rating: str, score: float, technical_signals: List[str],
-                         sentiment_signals: List[str]) -> str:
+    def _create_ai_prompt(
+        self,
+        rating: str,
+        score: float,
+        technical_signals: List[str],
+        sentiment_signals: List[str],
+    ) -> str:
         """Create a detailed prompt for AI analysis"""
         prompt = f"""Analyze this stock based on the following data:
 
 RATING: {rating} (Score: {score:.1f}/100)
 
 TECHNICAL SIGNALS:
-{chr(10).join('- ' + signal for signal in technical_signals[:5])}
+{chr(10).join("- " + signal for signal in technical_signals[:5])}
 
 SENTIMENT SIGNALS:
-{chr(10).join('- ' + signal for signal in sentiment_signals[:5])}
+{chr(10).join("- " + signal for signal in sentiment_signals[:5])}
 
 Provide a concise 2-3 sentence analysis focusing on:
 1. Key insights from the data
@@ -452,6 +499,234 @@ Be direct and actionable. Avoid disclaimers."""
 
         return prompt
 
+    def classify_news_headline(
+        self, headline: str, ticker: Optional[str] = None
+    ) -> Dict:
+        """
+        Classify a news headline as positive, negative, or neutral for stock sentiment.
+
+        Args:
+            headline: The news headline to classify
+            ticker: Optional stock ticker for context
+
+        Returns:
+            Dict with classification, confidence, and explanation
+        """
+        from ai_providers import AIProviderFactory
+        from settings_manager import get_active_ai_provider
+
+        if not headline or not headline.strip():
+            return {
+                "success": False,
+                "error": "No headline provided",
+                "classification": None,
+                "confidence": 0,
+                "explanation": None,
+            }
+
+        # Get active AI provider
+        provider_config = get_active_ai_provider()
+        if not provider_config:
+            # Fallback to rule-based classification if no AI provider
+            return self._rule_based_classification(headline)
+
+        # Build the classification prompt
+        context = f"Stock ticker: {ticker}" if ticker else "General stock market"
+
+        prompt = f"""You are a financial sentiment analyst. Analyze the following news headline and classify its sentiment impact on the stock market.
+
+Context: {context}
+
+News Headline: "{headline}"
+
+Classify this headline as one of:
+- POSITIVE: The headline suggests good news that could positively impact the stock price (e.g., strong earnings, new partnerships, product launches, market expansion)
+- NEGATIVE: The headline suggests bad news that could negatively impact the stock price (e.g., layoffs, lawsuits, missed earnings, regulatory issues)
+- NEUTRAL: The headline is informational with no clear positive or negative impact on stock price
+
+Respond in EXACTLY this JSON format (no other text):
+{{"classification": "POSITIVE" or "NEGATIVE" or "NEUTRAL", "confidence": <number 0-100>, "explanation": "<brief 1-sentence explanation>"}}"""
+
+        try:
+            # Create AI provider instance
+            provider = AIProviderFactory.create_provider(
+                provider_config["provider_name"],
+                provider_config["api_key"],
+                provider_config["model"],
+            )
+
+            if not provider:
+                return self._rule_based_classification(headline)
+
+            # Get AI response
+            response = provider.generate_analysis(prompt, max_tokens=200)
+
+            if response and not response.startswith("Error:"):
+                # Parse JSON response
+                try:
+                    # Clean up the response - extract JSON if wrapped in other text
+                    response = response.strip()
+                    if response.startswith("```"):
+                        # Remove markdown code blocks
+                        lines = response.split("\n")
+                        response = "\n".join(
+                            lines[1:-1] if lines[-1] == "```" else lines[1:]
+                        )
+
+                    # Find JSON in response
+                    start_idx = response.find("{")
+                    end_idx = response.rfind("}") + 1
+                    if start_idx != -1 and end_idx > start_idx:
+                        json_str = response[start_idx:end_idx]
+                        result = json.loads(json_str)
+
+                        classification = result.get("classification", "NEUTRAL").upper()
+                        if classification not in ["POSITIVE", "NEGATIVE", "NEUTRAL"]:
+                            classification = "NEUTRAL"
+
+                        return {
+                            "success": True,
+                            "classification": classification,
+                            "confidence": min(
+                                100, max(0, int(result.get("confidence", 70)))
+                            ),
+                            "explanation": result.get(
+                                "explanation", "Classification based on AI analysis"
+                            ),
+                            "ai_powered": True,
+                            "headline": headline,
+                            "ticker": ticker,
+                        }
+                except json.JSONDecodeError as e:
+                    logger.warning(f"Failed to parse AI response as JSON: {e}")
+                    # Try to extract classification from text response
+                    response_upper = response.upper()
+                    if "POSITIVE" in response_upper:
+                        classification = "POSITIVE"
+                    elif "NEGATIVE" in response_upper:
+                        classification = "NEGATIVE"
+                    else:
+                        classification = "NEUTRAL"
+
+                    return {
+                        "success": True,
+                        "classification": classification,
+                        "confidence": 60,
+                        "explanation": "Classification extracted from AI response",
+                        "ai_powered": True,
+                        "headline": headline,
+                        "ticker": ticker,
+                    }
+
+            # Fallback to rule-based if AI fails
+            return self._rule_based_classification(headline)
+
+        except Exception as e:
+            logger.error(f"Error in AI classification: {e}")
+            return self._rule_based_classification(headline)
+
+    def _rule_based_classification(self, headline: str) -> Dict:
+        """
+        Fallback rule-based sentiment classification when AI is not available.
+        """
+        headline_lower = headline.lower()
+
+        # Positive keywords
+        positive_keywords = [
+            "surge",
+            "soar",
+            "jump",
+            "gain",
+            "rise",
+            "up",
+            "high",
+            "record",
+            "profit",
+            "growth",
+            "beat",
+            "exceed",
+            "strong",
+            "boost",
+            "rally",
+            "upgrade",
+            "buy",
+            "bullish",
+            "outperform",
+            "success",
+            "win",
+            "deal",
+            "partnership",
+            "launch",
+            "expand",
+            "innovation",
+            "breakthrough",
+            "dividend",
+            "acquisition",
+            "merger",
+            "approve",
+            "positive",
+        ]
+
+        # Negative keywords
+        negative_keywords = [
+            "fall",
+            "drop",
+            "decline",
+            "loss",
+            "down",
+            "low",
+            "crash",
+            "plunge",
+            "miss",
+            "fail",
+            "weak",
+            "cut",
+            "layoff",
+            "lawsuit",
+            "investigation",
+            "downgrade",
+            "sell",
+            "bearish",
+            "underperform",
+            "warning",
+            "risk",
+            "debt",
+            "bankruptcy",
+            "fraud",
+            "scandal",
+            "recall",
+            "delay",
+            "cancel",
+            "negative",
+            "concern",
+            "worry",
+            "fear",
+            "crisis",
+        ]
+
+        positive_score = sum(1 for word in positive_keywords if word in headline_lower)
+        negative_score = sum(1 for word in negative_keywords if word in headline_lower)
+
+        if positive_score > negative_score:
+            classification = "POSITIVE"
+            confidence = min(85, 50 + (positive_score - negative_score) * 10)
+        elif negative_score > positive_score:
+            classification = "NEGATIVE"
+            confidence = min(85, 50 + (negative_score - positive_score) * 10)
+        else:
+            classification = "NEUTRAL"
+            confidence = 60
+
+        return {
+            "success": True,
+            "classification": classification,
+            "confidence": confidence,
+            "explanation": "Classification based on keyword analysis (AI not available)",
+            "ai_powered": False,
+            "headline": headline,
+            "ticker": None,
+        }
+
     def get_all_ratings(self) -> List[Dict]:
         """Get AI ratings for all active stocks"""
         conn = sqlite3.connect(self.db_path)
@@ -459,8 +734,8 @@ Be direct and actionable. Avoid disclaimers."""
         cursor = conn.cursor()
 
         try:
-            cursor.execute('SELECT ticker FROM stocks WHERE active = 1 ORDER BY ticker')
-            stocks = [row['ticker'] for row in cursor.fetchall()]
+            cursor.execute("SELECT ticker FROM stocks WHERE active = 1 ORDER BY ticker")
+            stocks = [row["ticker"] for row in cursor.fetchall()]
         except sqlite3.OperationalError:
             stocks = []
 
@@ -473,21 +748,23 @@ Be direct and actionable. Avoid disclaimers."""
                 ratings.append(rating)
             except Exception as e:
                 logger.error(f"Error calculating rating for {ticker}: {e}")
-                ratings.append({
-                    'ticker': ticker,
-                    'rating': 'ERROR',
-                    'score': 0,
-                    'confidence': 0,
-                    'message': str(e)
-                })
+                ratings.append(
+                    {
+                        "ticker": ticker,
+                        "rating": "ERROR",
+                        "score": 0,
+                        "confidence": 0,
+                        "message": str(e),
+                    }
+                )
 
         return ratings
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Test the analytics
     analytics = StockAnalytics()
 
     # Test with a stock
-    rating = analytics.calculate_ai_rating('INTC')
+    rating = analytics.calculate_ai_rating("INTC")
     print(json.dumps(rating, indent=2))

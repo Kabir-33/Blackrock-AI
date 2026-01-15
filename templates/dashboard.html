@@ -1316,6 +1316,202 @@
                     opacity: 1;
                 }
             }
+
+            /* Headline Classifier Styles */
+            .headline-classifier {
+                margin-top: 20px;
+                background: white;
+                border-radius: 8px;
+                border: 1px solid #e2e8f0;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                overflow: hidden;
+                max-width: 800px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .classifier-header {
+                background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+                color: white;
+                padding: 15px 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .classifier-header h3 {
+                margin: 0;
+                font-size: 1.1em;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .classifier-body {
+                padding: 20px;
+            }
+
+            .classifier-input-area {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+
+            .classifier-input {
+                flex: 1;
+                padding: 12px 15px;
+                border: 2px solid #e5e7eb;
+                border-radius: 6px;
+                font-size: 0.95em;
+                font-family: inherit;
+                transition: border-color 0.2s;
+            }
+
+            .classifier-input:focus {
+                outline: none;
+                border-color: #1e3a5f;
+                box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+            }
+
+            .classifier-input::placeholder {
+                color: #9ca3af;
+            }
+
+            .classifier-btn {
+                padding: 12px 24px;
+                background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+                color: white;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-weight: 600;
+                transition: all 0.2s;
+                white-space: nowrap;
+            }
+
+            .classifier-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
+            }
+
+            .classifier-btn:disabled {
+                background: #94a3b8;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+            }
+
+            .classifier-result {
+                display: none;
+                padding: 20px;
+                border-radius: 8px;
+                margin-top: 15px;
+                animation: fadeIn 0.3s ease;
+            }
+
+            .classifier-result.show {
+                display: block;
+            }
+
+            .classifier-result.positive {
+                background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+                border: 1px solid #10b981;
+            }
+
+            .classifier-result.negative {
+                background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+                border: 1px solid #ef4444;
+            }
+
+            .classifier-result.neutral {
+                background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                border: 1px solid #64748b;
+            }
+
+            .result-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-weight: 700;
+                font-size: 1.1em;
+                margin-bottom: 12px;
+            }
+
+            .classifier-result.positive .result-badge {
+                background: #10b981;
+                color: white;
+            }
+
+            .classifier-result.negative .result-badge {
+                background: #ef4444;
+                color: white;
+            }
+
+            .classifier-result.neutral .result-badge {
+                background: #64748b;
+                color: white;
+            }
+
+            .result-confidence {
+                font-size: 0.9em;
+                color: #475569;
+                margin-bottom: 8px;
+            }
+
+            .confidence-bar {
+                height: 6px;
+                background: rgba(0, 0, 0, 0.1);
+                border-radius: 3px;
+                overflow: hidden;
+                margin-bottom: 12px;
+            }
+
+            .confidence-fill {
+                height: 100%;
+                border-radius: 3px;
+                transition: width 0.5s ease;
+            }
+
+            .classifier-result.positive .confidence-fill {
+                background: #10b981;
+            }
+
+            .classifier-result.negative .confidence-fill {
+                background: #ef4444;
+            }
+
+            .classifier-result.neutral .confidence-fill {
+                background: #64748b;
+            }
+
+            .result-explanation {
+                font-size: 0.95em;
+                color: #334155;
+                line-height: 1.5;
+                padding: 10px 15px;
+                background: rgba(255, 255, 255, 0.7);
+                border-radius: 6px;
+            }
+
+            .result-meta {
+                margin-top: 10px;
+                font-size: 0.8em;
+                color: #64748b;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .ai-indicator {
+                background: #0f172a;
+                color: white;
+                padding: 2px 8px;
+                border-radius: 4px;
+                font-size: 0.85em;
+                font-weight: 600;
+            }
         </style>
         <!-- Chart.js library for stock charts -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -1610,6 +1806,70 @@
                     </div>
 
                     <!-- Chat Box for Stock Questions -->
+                    <!-- Headline Classifier Section -->
+                    <div class="headline-classifier">
+                        <div class="classifier-header">
+                            <h3>📰 News Headline Sentiment Classifier</h3>
+                        </div>
+                        <div class="classifier-body">
+                            <p
+                                style="
+                                    color: #64748b;
+                                    margin-bottom: 15px;
+                                    font-size: 0.9em;
+                                "
+                            >
+                                Enter a news headline to analyze its potential
+                                impact on stock sentiment.
+                            </p>
+                            <div class="classifier-input-area">
+                                <input
+                                    type="text"
+                                    id="headlineInput"
+                                    class="classifier-input"
+                                    placeholder="e.g., Apple announces record quarterly earnings..."
+                                    onkeypress="handleHeadlineKeypress(event)"
+                                />
+                                <button
+                                    class="classifier-btn"
+                                    id="classifyBtn"
+                                    onclick="classifyHeadline()"
+                                >
+                                    🔍 Classify
+                                </button>
+                            </div>
+                            <div
+                                id="classifierResult"
+                                class="classifier-result"
+                            >
+                                <div class="result-badge" id="resultBadge">
+                                    <span id="resultIcon"></span>
+                                    <span id="resultLabel"></span>
+                                </div>
+                                <div class="result-confidence">
+                                    Confidence:
+                                    <strong id="resultConfidence"></strong>%
+                                </div>
+                                <div class="confidence-bar">
+                                    <div
+                                        class="confidence-fill"
+                                        id="confidenceFill"
+                                    ></div>
+                                </div>
+                                <div
+                                    class="result-explanation"
+                                    id="resultExplanation"
+                                ></div>
+                                <div class="result-meta">
+                                    <span id="aiIndicator" class="ai-indicator"
+                                        >🤖 AI Powered</span
+                                    >
+                                    <span id="headlineAnalyzed"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="chatBoxContainer" style="display: none">
                         <div class="chat-box-container">
                             <div class="chat-header">
@@ -3447,6 +3707,134 @@
                 messagesContainer.innerHTML =
                     '<div class="chat-empty">Ask any questions about the selected stock and AI will research and provide answers</div>';
                 document.getElementById("chatInput").value = "";
+            }
+
+            // Headline Classifier Functions
+            function handleHeadlineKeypress(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    classifyHeadline();
+                }
+            }
+
+            function classifyHeadline() {
+                const input = document.getElementById("headlineInput");
+                const headline = input.value.trim();
+                const classifyBtn = document.getElementById("classifyBtn");
+                const resultDiv = document.getElementById("classifierResult");
+                const ticker =
+                    document.getElementById("aiStockSelector")?.value || null;
+
+                if (!headline) {
+                    alert("Please enter a news headline to classify");
+                    return;
+                }
+
+                // Disable button and show loading state
+                classifyBtn.disabled = true;
+                classifyBtn.innerHTML = "⏳ Analyzing...";
+                resultDiv.classList.remove(
+                    "show",
+                    "positive",
+                    "negative",
+                    "neutral",
+                );
+
+                // Send to backend
+                fetch("/api/chat/classify-headline", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        headline: headline,
+                        ticker: ticker,
+                    }),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        classifyBtn.disabled = false;
+                        classifyBtn.innerHTML = "🔍 Classify";
+
+                        if (data.success) {
+                            displayClassificationResult(data);
+                        } else {
+                            alert(
+                                "Error: " +
+                                    (data.error || "Classification failed"),
+                            );
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Classification error:", error);
+                        classifyBtn.disabled = false;
+                        classifyBtn.innerHTML = "🔍 Classify";
+                        alert("Error: Could not reach the server");
+                    });
+            }
+
+            function displayClassificationResult(data) {
+                const resultDiv = document.getElementById("classifierResult");
+                const resultBadge = document.getElementById("resultBadge");
+                const resultIcon = document.getElementById("resultIcon");
+                const resultLabel = document.getElementById("resultLabel");
+                const resultConfidence =
+                    document.getElementById("resultConfidence");
+                const confidenceFill =
+                    document.getElementById("confidenceFill");
+                const resultExplanation =
+                    document.getElementById("resultExplanation");
+                const aiIndicator = document.getElementById("aiIndicator");
+                const headlineAnalyzed =
+                    document.getElementById("headlineAnalyzed");
+
+                // Reset classes
+                resultDiv.classList.remove("positive", "negative", "neutral");
+
+                // Set classification-specific styling
+                const classification = data.classification.toUpperCase();
+                if (classification === "POSITIVE") {
+                    resultDiv.classList.add("positive");
+                    resultIcon.textContent = "📈";
+                    resultLabel.textContent = "POSITIVE";
+                } else if (classification === "NEGATIVE") {
+                    resultDiv.classList.add("negative");
+                    resultIcon.textContent = "📉";
+                    resultLabel.textContent = "NEGATIVE";
+                } else {
+                    resultDiv.classList.add("neutral");
+                    resultIcon.textContent = "➡️";
+                    resultLabel.textContent = "NEUTRAL";
+                }
+
+                // Set confidence
+                resultConfidence.textContent = data.confidence;
+                confidenceFill.style.width = data.confidence + "%";
+
+                // Set explanation
+                resultExplanation.textContent =
+                    data.explanation || "Classification complete.";
+
+                // Set AI indicator
+                if (data.ai_powered) {
+                    aiIndicator.innerHTML = "🤖 AI Powered";
+                    aiIndicator.style.display = "inline-block";
+                } else {
+                    aiIndicator.innerHTML = "📊 Rule-based";
+                    aiIndicator.style.display = "inline-block";
+                }
+
+                // Show analyzed headline (truncated)
+                const truncatedHeadline =
+                    data.headline && data.headline.length > 50
+                        ? data.headline.substring(0, 50) + "..."
+                        : data.headline;
+                headlineAnalyzed.textContent = truncatedHeadline
+                    ? `"${truncatedHeadline}"`
+                    : "";
+
+                // Show result
+                resultDiv.classList.add("show");
             }
 
             // Modify renderSingleStockAIRating to show chat box
