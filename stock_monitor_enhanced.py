@@ -20,6 +20,7 @@ import requests
 from bs4 import BeautifulSoup
 
 # Configure logging
+logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
@@ -911,10 +912,5 @@ class EnhancedStockNewsMonitor:
 
 
 if __name__ == "__main__":
-    # Initialize settings tables on startup
-    from settings_manager import init_settings_table
-
-    init_settings_table()
-
     monitor = EnhancedStockNewsMonitor()
     monitor.run()
