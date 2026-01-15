@@ -1,12 +1,12 @@
-# 📊 StockPulse AI
+# 📊 SentimentX
 
 **Version 2.1.0** - Enhanced AI Features & Chat Integration
 
-**24/7 Stock Market Intelligence with AI-Powered Analysis**
+**24/7 Market Sentiment Analysis with AI-Powered Insights**
 
-StockPulse AI is a comprehensive stock market monitoring system that tracks news, social media, and market sentiment from 10+ sources in real-time. It features AI-powered technical analysis combining RSI, moving averages, and sentiment scoring to provide actionable BUY/SELL/HOLD ratings.
+SentimentX is a comprehensive market sentiment monitoring system that tracks news, social media, and market sentiment from 10+ sources in real-time. It features AI-powered technical analysis combining RSI, moving averages, and sentiment scoring to provide actionable BUY/SELL/HOLD ratings.
 
-![StockPulse AI Dashboard](https://via.placeholder.com/1200x600/667eea/ffffff?text=StockPulse+AI+Dashboard)
+![SentimentX Dashboard](https://via.placeholder.com/1200x600/667eea/ffffff?text=SentimentX+Dashboard)
 
 ## ✨ Features
 
@@ -167,7 +167,7 @@ stockpulse-ai/
 
 ## 📊 Data Sources
 
-StockPulse AI aggregates data from these sources:
+SentimentX aggregates data from these sources:
 
 ### Global Sources (All Stocks)
 | Source | Type | Coverage | Update Frequency |
@@ -214,7 +214,7 @@ NEGATIVE_KEYWORDS = ['your', 'keywords', ...]
 
 ⚠️ **SECURITY WARNING - READ CAREFULLY** ⚠️
 
-StockPulse AI supports real AI integration with OpenAI (ChatGPT), Anthropic (Claude), Google (Gemini), and xAI (Grok) for enhanced stock analysis.
+SentimentX supports real AI integration with OpenAI (ChatGPT), Anthropic (Claude), Google (Gemini), and xAI (Grok) for enhanced analysis.
 
 **IMPORTANT SECURITY NOTICE:**
 - **API keys are stored in PLAIN TEXT in the local SQLite database**
@@ -266,7 +266,7 @@ To enable full Reddit access, get API credentials from https://reddit.com/prefs/
 self.reddit = praw.Reddit(
     client_id='your_client_id',
     client_secret='your_client_secret',
-    user_agent='StockPulse AI v1.0'
+    user_agent='SentimentX v1.0'
 )
 ```
 
@@ -276,34 +276,34 @@ self.reddit = praw.Reddit(
 
 **Using systemd (recommended for production):**
 
-1. Create service file `/etc/systemd/system/stockpulse-monitor.service`:
+1. Create service file `/etc/systemd/system/sentimentx-monitor.service`:
 ```ini
 [Unit]
-Description=StockPulse AI Monitor
+Description=SentimentX Monitor
 After=network.target
 
 [Service]
 Type=simple
 User=your_user
-WorkingDirectory=/path/to/stockpulse-ai
-ExecStart=/usr/bin/python3.12 /path/to/stockpulse-ai/stock_monitor_enhanced.py
+WorkingDirectory=/path/to/sentimentx
+ExecStart=/usr/bin/python3.12 /path/to/sentimentx/stock_monitor_enhanced.py
 Restart=always
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-2. Create dashboard service `/etc/systemd/system/stockpulse-dashboard.service`:
+2. Create dashboard service `/etc/systemd/system/sentimentx-dashboard.service`:
 ```ini
 [Unit]
-Description=StockPulse AI Dashboard
+Description=SentimentX Dashboard
 After=network.target
 
 [Service]
 Type=simple
 User=your_user
-WorkingDirectory=/path/to/stockpulse-ai
-ExecStart=/usr/bin/python3.12 /path/to/stockpulse-ai/dashboard.py
+WorkingDirectory=/path/to/sentimentx
+ExecStart=/usr/bin/python3.12 /path/to/sentimentx/dashboard.py
 Restart=always
 
 [Install]
@@ -312,8 +312,8 @@ WantedBy=multi-user.target
 
 3. Enable and start:
 ```bash
-sudo systemctl enable stockpulse-monitor stockpulse-dashboard
-sudo systemctl start stockpulse-monitor stockpulse-dashboard
+sudo systemctl enable sentimentx-monitor sentimentx-dashboard
+sudo systemctl start sentimentx-monitor sentimentx-dashboard
 ```
 
 ### Database Management
@@ -335,7 +335,7 @@ sqlite3 stock_news.db "DELETE FROM news WHERE created_at < datetime('now', '-30 
 
 ## 📱 API Endpoints
 
-StockPulse AI provides REST APIs for integration:
+SentimentX provides REST APIs for integration:
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -377,8 +377,8 @@ Contributions are welcome! Here's how you can help:
 ### Development Setup
 ```bash
 # Clone your fork
-git clone https://github.com/yourusername/stockpulse-ai.git
-cd stockpulse-ai
+git clone https://github.com/yourusername/sentimentx.git
+cd sentimentx
 
 # Install dev dependencies
 pip install -r requirements.txt
@@ -398,11 +398,11 @@ This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)**
 - ✗ You CANNOT remove attribution to the original author
 - ✗ Any modifications MUST be shared under GPL-3.0
 
-**Attribution Required:** All use must credit Amit Patole and link to https://github.com/amitpatole/stockpulse-ai
+**Attribution Required:** All use must credit the original author and link to https://github.com/amitpatole/sentimentx
 
 ## ⚠️ Disclaimer
 
-**IMPORTANT:** StockPulse AI is for informational and educational purposes only. It is NOT financial advice.
+**IMPORTANT:** SentimentX is for informational and educational purposes only. It is NOT financial advice.
 
 - Do not make investment decisions based solely on this tool
 - Always do your own research (DYOR)
@@ -418,11 +418,13 @@ This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)**
 
 ## 📧 Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/stockpulse-ai/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/stockpulse-ai/discussions)
+- **Issues**: [GitHub Issues](https://github.com/yourusername/sentimentx/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/sentimentx/discussions)
 
 ---
 
 **Made with ❤️ for retail investors and traders**
 
 *Star ⭐ this repository if you found it helpful!*
+#   B l a c k r o c k - A I  
+ 
